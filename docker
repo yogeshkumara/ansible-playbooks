@@ -1,0 +1,116 @@
+docker --help
+systemctl enable docker
+systemctl start docker  
+
+docker info
+docker ls
+docker ps
+docker ps -a
+docker history 
+docker inspect <container name>
+docker stats <container name>
+
+
+Images
+
+docker pull centos
+docker pull kumar/img1:1
+docker login
+docker push kumar/img1
+docker images
+
+Creating a container:
+ 
+docker run -itd --name cont1   centos|<image id> --  default allocate a shell (sh or bash) missed i cannot login 
+
+
+docker run -itd --name cont2 centos /bin/bash  -- good to follow 
+
+
+connecting to the container 
+
+docker attach cont1
+ctrl + pq
+exit  -- shutdown the container
+
+docker exec -it cont1 /bin/bash
+exit
+
+docker ps  -- running container status
+
+docker ps -a  -- running/stop/pause/failed status of the container 
+docker run   5 options
+-i  --- interactive 
+-t  -- terminal 
+-d  ---  detach
+-p  --- port mapping
+-v  --- volume mapping  
+--network bridge   
+
+docker exec -it cont1 /bin/bash
+yum install -y httpd
+
+/usr/sbin/httpd &
+
+ps -ef|grep -i httpd
+
+exit
+
+docker ps
+docker images
+
+docker commit cont1 cont1cust:httpdimg    imagename:TAG
+docker commit cont1 cont1cust
+docker images
+
+docker run -itd --name cont1new cont1cust
+
+docker exec -it cont1new /bin/bash
+rpm -qa httpd
+/usr/sbin/httpd &
+
+docker tag cont1cust:httpdimg  kumar/cont1cust1:httpdimg
+
+docker push kumar/cont1cust1:httpdimg
+
+
+33############################################################################################
+
+Vi Dockerfile
+FROM ubuntu 
+MAINTAINER kumar
+RUN apt-get update 
+RUN apt-get install –y nginx 
+CMD [“echo”,”Image created”] 
+
+docker build -t kumar/nginx:v1 -f Dockerfile .
+docker images
+docker run -itd --name ubuntutest kumar/nginx:v1 /bin/bash
+docker exec -it ubuntutest /bin/bash
+__________________________________________________________________________
+vi Dockerfile1
+FROM centos
+MAINTAINER kumar
+RUN yum install -y httpd
+EXPOSE 80
+ENTRYPOINT["/usr/bin/httpd", "-D", "FOREGROUND"]
+
+ docker images
+docker run -itd --name httpdtest kumar/httpdcust:v1
+docker exec -it httpdtest /bin/bash
+ps -ef
+exit
+docker inspect httpdtest
+
+curl https://172.17.0.3:80
+
+
+
+
+
+
+
+
+
+
+

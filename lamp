@@ -1,0 +1,89 @@
+https://coderwall.com/p/6zm8rq/how-to-create-a-lamp-stack-with-ansible
+
+
+ - hosts: local
+   become: true
+   var_files: variables.yaml
+   tasks:
+     - name: installation of "{{centos.pkg}}" package
+       yum: name="{{centos.pkg}}" state=present
+       register: pkg_install
+	   tags:
+	     - centos
+       
+       
+     - name: installation of "{{ubuntu.pkg}}" package
+       apt: name="{{ubuntu.pkg}}" state=present
+       register: pkg_install
+	    tags:
+	     - ubuntu
+		 - general
+		 
+  
+     - name: starting "{{centos.service}}" service
+       service: name="{{centos.service}}" state=started enabled=yes
+       when: pkg_install|success
+	    tags:
+	     - centos
+        
+     - name: starting "{{ubuntu.service}}" service
+       service: name="{{ubuntu.service}}" state=started enabled=yes
+       when: pkg_install|success
+	    tags:
+	     - ubuntu
+	   
+	   ansible-playbook installpkg.yaml --list-tags
+	   ansible-playbook installpkg.yaml --tags ubuntu
+	   
+	    ansible-playbook installpkg.yaml 
+		
+		
+	    
+ - hosts: local
+   become: true
+   var_files: variables.yaml
+   tasks:
+     - name: installation of "{{centos.pkg}}" package
+       yum: name="{{centos.pkg}}" state=present
+	   when: ansible_distribution == "Centos" and ansible_distribution_major_version == "7"
+       register: pkg_install   
+       notify:
+          - starting_service_centos	   
+     
+     - name: installation of "{{ubuntu.pkg}}" package
+       apt: name="{{ubuntu.pkg}}" state=present
+	   when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "16.04"
+       register: pkg_install
+	   notify:
+          - starting_service_ubuntu
+
+   handlers:	 
+     - name: starting_service_centos
+       service: name="{{centos.service}}" state=started enabled=yes
+    
+     - name: starting_service_ubuntu
+       service: name="{{ubuntu.service}}" state=started enabled=yes
+      
+	    
+		
+		
+ - hosts: local
+   become: true
+   tasks:
+     - name: installation of "{{centos.pkg}}" package
+       yum: name="{{item}}" state=present
+	   with_items:
+	      - php
+		  - httpd
+		  - mariadb
+		  - mariadb-server 
+       notify:
+          - starting_service_Lamp
+
+    handlers:	 
+     - name: starting_service_Lamp
+       service: name="{{item}}" state=started enabled=yes
+       with_items:
+		  - httpd
+		  - mariadb
+		   	   

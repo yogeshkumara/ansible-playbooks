@@ -1,0 +1,314 @@
+vi firstplaybook.yml
+---
+ - hosts: grp1
+   become: true
+   tasks:
+     - name: copying the scripts
+       copy: src=test.sh dest=/var/tmp/test.sh owner=root group=sys
+     
+     - name: executing the script
+       shell: /var/tmp/test.sh
+        
+     
+vi firstplaybook.yml
+---
+ - hosts: grp1
+   become: true
+   tasks:
+     - copy: src=test.sh dest=/var/tmp/test.sh owner=root group=sys
+     
+     - shell: /var/tmp/test.sh
+
+vi firstplaybook.yml
+---
+ - hosts: grp1
+   become: true
+   tasks:
+      - name: copying the scripts
+        copy: 
+         src: test.sh 
+         dest: /var/tmp/test.sh 
+         owner: root 
+         group: sys
+     
+      - name: executing the script
+        shell: 
+          /var/tmp/test.sh
+ 
+ansible-playbook --syntax-check firstplaybook.yml            ---  check the syntax
+ansible-playbook firstplaybook.yml --check                   ---  dry run 
+ansible-playbook firstplaybook.yml -vvv                      ---  executing the code
+
+
+---
+ - hosts: grp1
+   become: true
+   tasks:
+     - name: creating group
+       group: name=pragathigroup state=present
+       
+     - name: creating user
+       user: name=pragathiuser group=pragathigroup state=present
+  
+  
+  
+  ansible grp1 -m setup|grep -i ansible
+  
+  
+  
+  
+    -  name: installation of httpd package
+       yum: name=httpd state=present
+       register: http_install
+       when: ansible_distribution == "Centos" and ansible_distribution_major_version == "7"
+       
+    -  name: installation of apache package
+       apt: name=apache state=present
+       register: apache_install
+       when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "16.04"
+       
+     - name : validatiing the log
+       debug: var=http_install
+       
+     - name: validation of httpd
+       command: ls -al /sbin/httpd
+       register: http_validation
+
+     - name: starting httpd service
+       service: name=httpd state=started enabled=yes
+       when: http_validation|success and http_install|success
+  
+  
+  
+  
+ - hosts: local
+   become: true
+   vars:
+     pkg: "httpd"
+
+   tasks:
+     - name: installation of "{{pkg}}" package
+       yum: name="{{pkg}}" state=present
+       register: pkg_install
+
+  
+     - name: starting "{{pkg}}" service
+       service: name="{{pkg}}" state=started enabled=yes
+       when: pkg_install|success
+
+
+
+---
+ - hosts: local
+   become: true
+   vars:
+    - pkg: "{{pkg_name}}"
+
+   tasks:
+     - name: installation of httpd package
+       yum: name="{{item}}" state=present
+       with_items:
+        - "{{pkg}}"
+       register: pkg_install
+
+
+     - name: starting httpd service
+       service: name="{{item}}" state=started enabled=yes
+       with_items:
+        - "{{pkg}}"
+       when: pkg_install|success 
+
+ansible-playbook secondplaybook3.yml -e '{"pkg_name": [httpd, php]}'
+
+  vars:
+     pkg:
+      - httpd
+      - php
+      - screen
+      - 
+      
+      
+    variables:
+    
+   vars:
+     pkg: httpd
+     service: http
+
+
+
+vi variables.yaml
+---
+
+pkg: httpd
+service: http
+config: /etc/httpd/conf
+index: /var/www/html
+
+
+
+ - hosts: local
+   become: true
+   var_files: variables.yaml
+   tasks:
+     - name: installation of "{{pkg}}" package
+       yum: name="{{pkg}}" state=present
+       register: pkg_install
+
+  
+     - name: starting "{{pkg}}" service
+       service: name="{{pkg}}" state=started enabled=yes
+       when: pkg_install|success
+       
+       
+vi variables.yaml
+---
+centos:
+    pkg: httpd
+    service: http
+    config: /etc/httpd/conf
+    index: /var/www/html 
+  
+ubuntu:
+    pkg: apache
+    service: apache
+    config: /etc/apache/conf
+    index: /var/www/html  
+    
+ 
+ - hosts: local
+   become: true
+   var_files: variables.yaml
+   tasks:
+     - name: installation of "{{centos.pkg}}" package
+       yum: name="{{centos.pkg}}" state=present
+       register: pkg_install
+       when: ansible_distribution == "Centos" and ansible_distribution_major_version == "7"
+       
+     - name: installation of "{{ubuntu.pkg}}" package
+       yum: name="{{ubuntu.pkg}}" state=present
+       register: pkg_install
+  
+     - name: starting "{{pkg}}" service
+       service: name="{{pkg}}" state=started enabled=yes
+       when: pkg_install|success
+        
+     - name: starting "{{ubuntu.service}}" service
+       service: name="{{ubuntu.service}}" state=started enabled=yes
+       when: pkg_install|success
+       
+       
+    ________________________________________________________________
+    
+      vi variables.yaml
+---
+centos:
+    pkg: httpd
+    service: http
+    config: /etc/httpd/conf
+    index: /var/www/html 
+  
+ubuntu:
+    pkg: apache
+    service: apache
+    config: /etc/apache/conf
+    index: /var/www/html  
+    
+    vi ubuntu.yaml
+   
+     - name: installation of "{{ubuntu.pkg}}" package
+       yum: name="{{ubuntu.pkg}}" state=present
+       register: pkg_install
+       
+     - name: starting "{{ubuntu.service}}" service
+       service: name="{{ubuntu.service}}" state=started enabled=yes
+       when: pkg_install|success
+       
+       
+    vi centos.yaml
+     - name: installation of "{{centos.pkg}}" package
+       yum: name="{{centos.pkg}}" state=present
+       register: pkg_install
+     
+      - name: starting "{{centos.service}}" service
+       service: name="{{centos.service}}" state=started enabled=yes
+       when: pkg_install|success
+       
+    
+    vi packageinst.yaml
+    
+ - hosts: local
+   become: true
+   var_files: variables.yaml
+   tasks:
+      - name: installing for centos systems
+        include: centos.yaml
+        when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+      
+      - name: installing for ubuntu systems
+        include: ubuntu.yaml
+        when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "16.04"
+        
+     
+     
+ - hosts: local
+   become: true
+   tasks:
+      - name: including the variable files
+        include_vars: variables.yaml
+        
+      - name: installing for centos systems
+        include: centos.yaml
+        when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "7"
+      
+      - name: installing for ubuntu systems
+        include: ubuntu.yaml
+        when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "16.04"
+        
+       
+---
+ - hosts: local
+   become: true
+   vars_prompt:
+    - name: "user_name"
+      prompt: "Enter the user name:"
+
+    - name: "user_password"
+      prompt: "Enter password"
+      private: yes
+      encrypt: "md5_crypt"
+      confirm: yes
+   tasks:
+     - name: Creating user
+       user: name={{user_name}} password={{user_password}} shell=/bin/bash
+       
+       
+       
+       
+       
+       
+       
+        
+       playbook.yaml
+        vars:
+            a=p4
+       
+      roles 
+     
+    pkgroles:
+        vars/ main.yaml
+            a =3
+    
+    
+    groups_vars/all.yaml
+        a =1
+    
+    hosts_vars/dev.yaml
+                a =2
+               prod.yaml
+               nonprod.yaml
+               
+               
+    groups_vars  ---> hosts_vars ---> vars files directory  --->  playbook 
+               
+   
+        

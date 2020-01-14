@@ -1,0 +1,201 @@
+git clone <dbproject>
+
+vi site.yaml
+---
+ - hosts: dbgrp1
+    become: true
+   roles:
+     - dbroles
+	 
+ansible-playbook  site.yaml   --- /etc/ansible/hosts
+cd dbprojects
+ansible--playbook -i hosts site.yaml
+
+dbprojects
+    hosts
+	 roles
+	   dbroles
+		   vars  
+		    
+		   tasks
+		   handlers
+		   files
+		   templates
+		  
+	   webroles
+	       vars
+		   tasks
+		   handlers
+		   files
+		   templates
+	site.yml
+	README
+	.git
+	
+	
+	git clone <>
+	
+	cd httpinst
+         roles
+	  group_vars
+	      touch all
+		  touch  grp1
+	  vi hosts
+	  [grp1]
+	  s1
+	  s2
+	  
+	  [grp2]
+	  s3
+	  s4
+
+	  touch site.yaml
+	  ---
+	   - hosts: grp1
+	     roles:
+		   - webinst
+		   - dbinst
+		   
+	  
+	
+	
+	
+	
+	ansible-galaxy init lamprole
+	
+	ls -lRt	lamprole
+	
+	
+	
+	
+vi httpvar.yaml
+---
+Pkg:
+  - java
+  - screen
+  - httpd
+service: httpd
+
+vi fourthplaybook.yaml
+---
+ - hosts: grp1
+   become: true
+   var_files:
+     - httpvar.yaml
+  tasks:
+      - name: installing packages
+	    yum: name="{{item}}" state=present
+		with_items:
+		   - "{{ pkg }}"
+		register: installation_log	
+
+      - name: starting the service
+	    service: name="{{item}}" enabled=yes state=started
+		with_items:
+		   - "{{ service }}"
+		when: installation_log|success 
+		
+		
+		
+	ansible-galaxy init lamprole
+	
+	ls -lRt lamprole
+	
+cd lamprole/vars
+vi main.yaml
+Pkg:
+  - java
+  - screen
+  - httpd
+service: httpd
+
+cd lamprole/tasks
+vi main.yaml
+- name: installing packages
+  yum: name="{{item}}" state=present
+   with_items:
+      - "{{ pkg }}"
+register: installation_log	
+
+cd lamprole/handlers
+vi main.yaml
+- name: starting the service
+  service: name="{{item}}" enabled=yes state=started
+  with_items:
+	- "{{ service }}"
+  when: installation_log|success 
+  
+
+cd lamproles/files
+   touch index.html
+   
+ 
+ 
+ vi httpplaybook.yaml
+ ---
+  - hosts: grp1
+    roles:
+	  - lamprole
+	  
+	ansible-playbook --syntax-check httpplaybook.yaml
+	
+  vi hosts
+  [grp1]
+  webservers1
+  2
+  3
+  
+  
+  
+  [grp2]
+  dbservers
+  
+  
+  roles
+	webserverrole
+	dbrole
+	commonrole
+	
+	
+
+
+vi site.yaml
+---
+ - hosts: all
+   roles:
+     - commonrole
+	 
+ - hosts: grp1
+   roles:
+     - webserverrole
+	 - lbrole
+	 
+
+	 
+ - hosts: grp2
+   roles:
+     - dbrole
+	 - haproxyrole
+	 
+	 
+	 
+	 
+	 
+
+	 
+	
+  
+  
+  
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
